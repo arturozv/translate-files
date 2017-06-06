@@ -21,7 +21,6 @@ import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.context.ConfigurableApplicationContext;
 
 import java.util.Arrays;
-import java.util.List;
 import java.util.UUID;
 
 @SpringBootApplication
@@ -33,10 +32,11 @@ public class TranslateFilesApplication {
 
         String[] paths = new String[]{"Set1.txt", "Set2.txt", "Set3.txt"};
 
-        final Files files = getFiles(paths);
+        final Files files = parseArguments(paths);
 
         SpringApplication application = getApplication(files);
         ConfigurableApplicationContext context = application.run();
+        context.registerShutdownHook(); //makes the spring boot app stops gracefully
 
         JobLauncher jobLauncher = context.getBean(JobLauncher.class);
         Job job = (Job) context.getBean("translateFilesJob");
@@ -45,15 +45,22 @@ public class TranslateFilesApplication {
 
             JobExecution jobExecution = jobLauncher.run(job, new JobParametersBuilder().addString("run.id", UUID.randomUUID().toString()).toJobParameters());
             logger.info("Process finished! {}", jobExecution);
+            context.close();
+            System.exit(0);
 
         } catch (JobExecutionAlreadyRunningException | JobRestartException | JobInstanceAlreadyCompleteException | JobParametersInvalidException e) {
             logger.error("Error executing batch process: {}", e.getMessage(), e);
+            context.close();
             System.exit(1);
         }
-
-        context.close();
     }
 
+    /**
+     * Register the Files bean and creates the Spring application
+     *
+     * @param files Files objet to be registered as a Spring bean
+     * @return SpringApplication ready to be started
+     */
     private static SpringApplication getApplication(Files files) {
         SpringApplication application = new SpringApplication(TranslateFilesApplication.class);
         application.setBannerMode(Banner.Mode.OFF);
@@ -65,7 +72,14 @@ public class TranslateFilesApplication {
         return application;
     }
 
-    private static Files getFiles(String... paths) {
+
+    /**
+     * Parses arguments into a Files object containing all file paths
+     *
+     * @param paths file paths
+     * @return Files object containing all file paths
+     */
+    private static Files parseArguments(String... paths) {
         Files files = null;
         try {
             files = Files.Factory.newInstance(Arrays.asList(paths));
