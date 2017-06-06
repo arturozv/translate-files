@@ -1,6 +1,9 @@
 package com.zenval.translatefiles.job;
 
 import com.zenval.translatefiles.file.Files;
+import com.zenval.translatefiles.job.components.FilePartitioner;
+import com.zenval.translatefiles.job.components.TextAndLine;
+import com.zenval.translatefiles.job.components.TranslateProcessor;
 import com.zenval.translatefiles.service.BatchAggregator;
 import com.zenval.translatefiles.service.impl.InMemoryBatchAggregator;
 import com.zenval.translatefiles.service.impl.TestTranslateService;

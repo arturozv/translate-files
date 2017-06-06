@@ -1,6 +1,7 @@
 package com.zenval.translatefiles.job;
 
 import com.zenval.translatefiles.file.Files;
+import com.zenval.translatefiles.job.components.FilePartitioner;
 import com.zenval.translatefiles.service.BatchAggregator;
 
 import org.junit.Test;

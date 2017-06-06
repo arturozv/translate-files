@@ -1,4 +1,4 @@
-package com.zenval.translatefiles.job;
+package com.zenval.translatefiles.job.components;
 
 /**
  * Created by arturo on 06/06/17.

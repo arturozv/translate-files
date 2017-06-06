@@ -1,4 +1,4 @@
-package com.zenval.translatefiles.job;
+package com.zenval.translatefiles.job.components;
 
 import com.zenval.translatefiles.service.BatchAggregator;
 import com.zenval.translatefiles.service.TranslateService;
