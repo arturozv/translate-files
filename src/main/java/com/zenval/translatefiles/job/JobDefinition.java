@@ -82,12 +82,12 @@ public class JobDefinition {
     }
 
     @Bean(name = "fileTranslateSlaveStep")
-    public Step fileTranslateSlaveStep(FlatFileItemReader<String> fileReader,
+    public Step fileTranslateSlaveStep(FlatFileItemReader<TextAndLine> fileReader,
                                        TranslateProcessor translateProcessor,
                                        FlatFileItemWriter<String> fileWriter) {
         int chunkSize = 1000;
         return stepBuilder.get("fileTranslateSlaveStep").
-                <String, String>chunk(chunkSize)
+                <TextAndLine, String>chunk(chunkSize)
                 .reader(fileReader)
                 .processor(translateProcessor)
                 .writer(fileWriter)
@@ -98,12 +98,12 @@ public class JobDefinition {
 
     @Bean
     @StepScope
-    public FlatFileItemReader<String> fileReader(@Value("#{stepExecutionContext[file]}") final File file) throws Exception {
-        FlatFileItemReader<String> fileReader = new FlatFileItemReader<>();
+    public FlatFileItemReader<TextAndLine> fileReader(@Value("#{stepExecutionContext[file]}") final File file) throws Exception {
+        FlatFileItemReader<TextAndLine> fileReader = new FlatFileItemReader<>();
         fileReader.setEncoding("UTF-8");
         fileReader.setLinesToSkip(0);
         fileReader.setResource(new FileSystemResource(file));
-        fileReader.setLineMapper((line, lineNumber) -> line);
+        fileReader.setLineMapper(TextAndLine::new);
         return fileReader;
     }
 

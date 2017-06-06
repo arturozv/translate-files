@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class TranslateProcessor implements ItemProcessor<String, String> {
+public class TranslateProcessor implements ItemProcessor<TextAndLine, String> {
 
     private TranslateService translateService;
 
@@ -17,7 +17,7 @@ public class TranslateProcessor implements ItemProcessor<String, String> {
     }
 
     @Override
-    public String process(String item) throws Exception {
-        return translateService.translate(item, "en", "sv");
+    public String process(TextAndLine item) throws Exception {
+        return translateService.translate(item.getText(), "en", "sv");
     }
 }
