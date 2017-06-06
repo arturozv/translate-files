@@ -22,7 +22,7 @@ public class TranslateProcessor implements ItemProcessor<TextAndLine, String> {
 
     @Override
     public String process(TextAndLine item) throws Exception {
-        batchAggregator.enqueue(item, fileId);
+        batchAggregator.enqueue(item.getText(), item.getLine(), fileId);
         return translateService.translate(item.getText(), "en", "sv");
     }
 }

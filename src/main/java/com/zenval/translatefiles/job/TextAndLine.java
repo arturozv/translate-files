@@ -5,7 +5,7 @@ package com.zenval.translatefiles.job;
  */
 public class TextAndLine {
     private String text;
-    private int line;
+    private long line;
 
     public TextAndLine(String text, int line) {
         this.text = text;
@@ -20,7 +20,7 @@ public class TextAndLine {
         this.text = text;
     }
 
-    public int getLine() {
+    public long getLine() {
         return line;
     }
 
