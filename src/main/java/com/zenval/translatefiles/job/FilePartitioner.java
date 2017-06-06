@@ -17,6 +17,8 @@ import java.util.Map;
 @Component
 public class FilePartitioner implements Partitioner {
     private static final Logger logger = LoggerFactory.getLogger(FilePartitioner.class);
+    public static final String FILE_KEY = "file";
+    public static final String LINE_COUNT_KEY = "lineCount";
 
     private Files files;
 
@@ -29,19 +31,20 @@ public class FilePartitioner implements Partitioner {
     public Map<String, ExecutionContext> partition(int gridSize) {
         Map<String, ExecutionContext> partitionMap = new HashMap<String, ExecutionContext>();
 
+        if(files != null) {
+            for (String path : files.getPaths()) {
+                File file = new File(path);
 
-        for (String path : files.getPaths()) {
-            File file = new File(path);
+                Long lineCount = FileLineCounter.getFileLineCount(file);
 
-            Long lineCount = FileLineCounter.getFileLineCount(file);
+                logger.info("Preparing to process file: {}, lines: {}", path, lineCount);
 
-            logger.info("Preparing to process file: {}, lines: {}", path, lineCount);
+                ExecutionContext context = new ExecutionContext();
+                context.put(FILE_KEY, file);
+                context.put(LINE_COUNT_KEY, lineCount);
 
-            ExecutionContext context = new ExecutionContext();
-            context.put("file", file);
-            context.put("lineCount", lineCount);
-
-            partitionMap.put(path, context);
+                partitionMap.put(path, context);
+            }
         }
         return partitionMap;
     }
