@@ -19,6 +19,7 @@ public class FilePartitioner implements Partitioner {
     private static final Logger logger = LoggerFactory.getLogger(FilePartitioner.class);
     public static final String FILE_KEY = "file";
     public static final String LINE_COUNT_KEY = "lineCount";
+    public static final String FILE_ID_KEY = "fileId";
 
     private Files files;
 
@@ -40,6 +41,7 @@ public class FilePartitioner implements Partitioner {
                 logger.info("Preparing to process file: {}, lines: {}", path, lineCount);
 
                 ExecutionContext context = new ExecutionContext();
+                context.put(FILE_ID_KEY, path);
                 context.put(FILE_KEY, file);
                 context.put(LINE_COUNT_KEY, lineCount);
 

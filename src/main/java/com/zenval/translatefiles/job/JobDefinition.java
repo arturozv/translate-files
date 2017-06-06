@@ -1,6 +1,8 @@
 package com.zenval.translatefiles.job;
 
 import com.zenval.translatefiles.file.Files;
+import com.zenval.translatefiles.service.BatchAggregator;
+import com.zenval.translatefiles.service.InMemoryBatchAggregator;
 import com.zenval.translatefiles.service.TestTranslateService;
 import com.zenval.translatefiles.service.TranslateService;
 
@@ -62,6 +64,19 @@ public class JobDefinition {
     }
 
     @Bean
+    public BatchAggregator batchAggregator() {
+        return new InMemoryBatchAggregator().start();
+    }
+
+    @Bean
+    @StepScope
+    public TranslateProcessor translateProcessor(@Value("#{stepExecutionContext[" + FilePartitioner.FILE_ID_KEY + "]}") final String fileId,
+                                                 TranslateService translateService, BatchAggregator batchAggregator) {
+        return new TranslateProcessor(fileId, translateService, batchAggregator);
+    }
+
+
+    @Bean
     public Step translateFilesValidationStep() {
         logger.info("pathFiles: {}", files);
         return stepBuilder.get("translateFilesValidationStep").tasklet((contribution, chunkContext) -> {
@@ -98,7 +113,7 @@ public class JobDefinition {
 
     @Bean
     @StepScope
-    public FlatFileItemReader<TextAndLine> fileReader(@Value("#{stepExecutionContext[file]}") final File file) throws Exception {
+    public FlatFileItemReader<TextAndLine> fileReader(@Value("#{stepExecutionContext[" + FilePartitioner.FILE_KEY + "]}") final File file) throws Exception {
         FlatFileItemReader<TextAndLine> fileReader = new FlatFileItemReader<>();
         fileReader.setEncoding("UTF-8");
         fileReader.setLinesToSkip(0);

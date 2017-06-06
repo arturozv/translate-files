@@ -52,5 +52,6 @@ public class FilePartitionerTest {
         assertThat(partitionMap).containsKeys(fileName);
         assertThat(partitionMap.get(fileName).containsKey(FilePartitioner.FILE_KEY));
         assertThat(partitionMap.get(fileName).containsKey(FilePartitioner.LINE_COUNT_KEY));
+        assertThat(partitionMap.get(fileName).containsKey(FilePartitioner.FILE_ID_KEY));
     }
 }
