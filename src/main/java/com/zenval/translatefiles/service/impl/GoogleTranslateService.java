@@ -1,4 +1,6 @@
-package com.zenval.translatefiles.service;
+package com.zenval.translatefiles.service.impl;
+
+import com.zenval.translatefiles.service.TranslateService;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

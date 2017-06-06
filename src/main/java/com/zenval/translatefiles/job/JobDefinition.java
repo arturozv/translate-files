@@ -2,8 +2,8 @@ package com.zenval.translatefiles.job;
 
 import com.zenval.translatefiles.file.Files;
 import com.zenval.translatefiles.service.BatchAggregator;
-import com.zenval.translatefiles.service.InMemoryBatchAggregator;
-import com.zenval.translatefiles.service.TestTranslateService;
+import com.zenval.translatefiles.service.impl.InMemoryBatchAggregator;
+import com.zenval.translatefiles.service.impl.TestTranslateService;
 import com.zenval.translatefiles.service.TranslateService;
 
 import org.slf4j.Logger;

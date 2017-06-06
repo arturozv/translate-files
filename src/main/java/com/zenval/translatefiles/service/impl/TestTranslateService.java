@@ -1,4 +1,6 @@
-package com.zenval.translatefiles.service;
+package com.zenval.translatefiles.service.impl;
+
+import com.zenval.translatefiles.service.TranslateService;
 
 public class TestTranslateService implements TranslateService {
     @Override
