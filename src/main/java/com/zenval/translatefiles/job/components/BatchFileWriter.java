@@ -21,21 +21,24 @@ public class BatchFileWriter implements ItemWriter<Translation> {
 
     private Map<String, Long> lineCountByFile = new HashMap<>();
     private Map<Long, BatchGroup> wordsByLineNumber = new HashMap<>();
+    private long minLineNumber = 0;
 
     @Override
     public void write(List<? extends Translation> items) throws Exception {
         logger.info("aggregating {} words", items.size());
-        Map<Long, List<Translation>> wordsByLineNumber = groupByLine((List<Translation>) items);
+        @SuppressWarnings("unchecked") Map<Long, List<Translation>> wordsByLineNumber = groupByLine((List<Translation>) items);
         addToMainMap(wordsByLineNumber, this.wordsByLineNumber);
     }
 
     /**
      * Register a file and it's line count to be able to generate the batches by line
-     * @param fileId file id (path)
+     *
+     * @param fileId    file id (path)
      * @param lineCount number of lines of the file
      */
     public void registerFileLength(String fileId, Long lineCount) {
         lineCountByFile.put(fileId, lineCount);
+        minLineNumber = Math.min(minLineNumber, lineCount);
     }
 
     Map<Long, List<Translation>> groupByLine(List<Translation> toProcess) {
@@ -43,18 +46,40 @@ public class BatchFileWriter implements ItemWriter<Translation> {
     }
 
     void addToMainMap(Map<Long, List<Translation>> from, Map<Long, BatchGroup> to) {
+
         for (Map.Entry<Long, List<Translation>> entry : from.entrySet()) {
             Long lineNumber = entry.getKey();
             List<Translation> words = entry.getValue();
 
-            BatchGroup batchItem = to.get(lineNumber);
+            BatchGroup batchGroup = to.get(lineNumber);
 
-            if (batchItem == null) {
-                //lineCountByFile.get()
-                //batchItem = new BatchItem(lineNumber);
+            if (batchGroup == null) {
+                Long expectedWordCount = getExpectedWordCount(lineNumber);
+                batchGroup = new BatchGroup(lineNumber, expectedWordCount);
             }
 
-            //batchItem.getWords().addAll(words);
+            batchGroup.getTranslations().addAll(words);
+
+            logger.info("checking line {}. Expected: {}, current: {}", lineNumber, batchGroup.getExpectedWordCount(), batchGroup.getTranslations().size());
+
+            if(batchGroup.getTranslations().size() == batchGroup.getExpectedWordCount()) {
+                logger.info("line {} complete!", lineNumber);
+                writeBatch(batchGroup.getTranslations());
+                to.remove(lineNumber);
+            } else {
+                to.put(lineNumber, batchGroup);
+            }
         }
+    }
+
+    void writeBatch(List<Translation> translations) {
+
+    }
+
+    long getExpectedWordCount(Long lineNumber) {
+        if (lineNumber <= minLineNumber) {
+            return lineCountByFile.size();
+        }
+        return lineCountByFile.entrySet().stream().filter(a -> a.getValue() <= lineNumber).count();
     }
 }

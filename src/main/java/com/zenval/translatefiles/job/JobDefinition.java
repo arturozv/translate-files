@@ -111,6 +111,7 @@ public class JobDefinition {
     public CompositeItemWriter<Translation> multipleWriter(FlatFileItemWriter<Translation> fileWriterAsYouGo, BatchFileWriter batchFileWriter) {
         CompositeItemWriter<Translation> compositeItemWriter = new CompositeItemWriter<>();
         compositeItemWriter.setDelegates(Arrays.asList(fileWriterAsYouGo, batchFileWriter));
+        compositeItemWriter.open(new ExecutionContext());
         return compositeItemWriter;
     }
 

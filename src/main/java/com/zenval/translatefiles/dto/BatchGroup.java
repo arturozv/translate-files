@@ -5,7 +5,7 @@ import java.util.List;
 
 public class BatchGroup {
     private Long line;
-    private List<String> words = new ArrayList<>();
+    private List<Translation> translations = new ArrayList<>();
     private Long expectedWordCount;
 
     public BatchGroup(Long line, Long expectedWordCount) {
@@ -17,8 +17,8 @@ public class BatchGroup {
         return line;
     }
 
-    public List<String> getWords() {
-        return words;
+    public List<Translation> getTranslations() {
+        return translations;
     }
 
     public Long getExpectedWordCount() {
@@ -30,7 +30,7 @@ public class BatchGroup {
         final StringBuffer sb = new StringBuffer("BatchGroup{");
         sb.append("line=").append(line);
         sb.append(", expectedWordCount=").append(expectedWordCount);
-        sb.append(", words=").append(words);
+        sb.append(", translations=").append(translations);
         sb.append('}');
         return sb.toString();
     }
