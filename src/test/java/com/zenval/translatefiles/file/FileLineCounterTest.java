@@ -45,4 +45,13 @@ public class FileLineCounterTest {
         assertThat(count, is(2l));
     }
 
+    public void file_not_empty_multiple_more() throws Exception {
+        File file = testFolder.newFile("not_empty1.txt");
+        FileUtils.writeStringToFile(file, "line1\nline2\nline3\nline4\nline5\nline6\nline7\nline8", Charset.defaultCharset());
+
+        Long count = FileLineCounter.getFileLineCount(file);
+
+        assertThat(count, is(8l));
+    }
+
 }
