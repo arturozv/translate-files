@@ -1,6 +1,7 @@
 package com.zenval.translatefiles.service;
 
 public interface BatchAggregator {
+
     /**
      * enqueue a translated text to be processed for the batch file
      * @param text translated text to be processed

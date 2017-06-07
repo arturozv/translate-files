@@ -7,7 +7,7 @@ public class TextAndLine {
     private String text;
     private long line;
 
-    public TextAndLine(String text, int line) {
+    public TextAndLine(String text, long line) {
         this.text = text;
         this.line = line;
     }

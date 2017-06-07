@@ -1,13 +1,15 @@
 package com.zenval.translatefiles.job;
 
 import com.zenval.translatefiles.file.Files;
+import com.zenval.translatefiles.job.components.BatchFileWriter;
 import com.zenval.translatefiles.job.components.FilePartitioner;
 import com.zenval.translatefiles.job.components.TextAndLine;
 import com.zenval.translatefiles.job.components.TranslateProcessor;
 import com.zenval.translatefiles.service.BatchAggregator;
+import com.zenval.translatefiles.service.Translation;
+import com.zenval.translatefiles.service.TranslationService;
 import com.zenval.translatefiles.service.impl.InMemoryBatchAggregator;
-import com.zenval.translatefiles.service.impl.TestTranslateService;
-import com.zenval.translatefiles.service.TranslateService;
+import com.zenval.translatefiles.service.impl.TestTranslationService;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,7 +21,7 @@ import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.file.FlatFileItemReader;
 import org.springframework.batch.item.file.FlatFileItemWriter;
 import org.springframework.batch.item.file.transform.PassThroughLineAggregator;
-import org.springframework.batch.repeat.RepeatStatus;
+import org.springframework.batch.item.support.CompositeItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,6 +32,7 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import java.io.File;
+import java.util.Arrays;
 
 @Configuration
 public class JobDefinition {
@@ -46,10 +49,9 @@ public class JobDefinition {
     private Files files;
 
     @Bean(name = "translateFilesJob")
-    public Job translateFilesJob(Step translateFilesValidationStep, Step fileTranslateStep) {
+    public Job translateFilesJob(Step fileTranslateStep) {
         return jobs.get("translateFilesJob")
-                .start(translateFilesValidationStep)
-                .next(fileTranslateStep)
+                .start(fileTranslateStep)
                 .build();
     }
 
@@ -62,8 +64,8 @@ public class JobDefinition {
     }
 
     @Bean
-    public TranslateService translateService() {
-        return new TestTranslateService();
+    public TranslationService translateService() {
+        return new TestTranslationService();
     }
 
     @Bean
@@ -74,20 +76,8 @@ public class JobDefinition {
     @Bean
     @StepScope
     public TranslateProcessor translateProcessor(@Value("#{stepExecutionContext[" + FilePartitioner.FILE_ID_KEY + "]}") final String fileId,
-                                                 TranslateService translateService, BatchAggregator batchAggregator) {
-        return new TranslateProcessor(fileId, translateService, batchAggregator);
-    }
-
-
-    @Bean
-    public Step translateFilesValidationStep() {
-        logger.info("pathFiles: {}", files);
-        return stepBuilder.get("translateFilesValidationStep").tasklet((contribution, chunkContext) -> {
-            logger.info("Tasklet");
-
-            return RepeatStatus.FINISHED;
-
-        }).build();
+                                                 TranslationService translationService) {
+        return new TranslateProcessor(fileId, translationService);
     }
 
     @Bean
@@ -102,13 +92,13 @@ public class JobDefinition {
     @Bean(name = "fileTranslateSlaveStep")
     public Step fileTranslateSlaveStep(FlatFileItemReader<TextAndLine> fileReader,
                                        TranslateProcessor translateProcessor,
-                                       FlatFileItemWriter<String> fileWriter) {
+                                       CompositeItemWriter<Translation> itemWriter) {
         int chunkSize = 1000;
         return stepBuilder.get("fileTranslateSlaveStep").
-                <TextAndLine, String>chunk(chunkSize)
+                <TextAndLine, Translation>chunk(chunkSize)
                 .reader(fileReader)
                 .processor(translateProcessor)
-                .writer(fileWriter)
+                .writer(itemWriter)
                 .taskExecutor(taskExecutor())
                 .throttleLimit(1)
                 .build();
@@ -126,12 +116,25 @@ public class JobDefinition {
     }
 
     @Bean
-    public FlatFileItemWriter<String> fileWriter() throws Exception {
-        FlatFileItemWriter<String> fileWriter = new FlatFileItemWriter<>();
+    public CompositeItemWriter<Translation> multipleWriter(FlatFileItemWriter<Translation> fileWriterAsYouGo, BatchFileWriter batchFileWriter) {
+        CompositeItemWriter<Translation> compositeItemWriter = new CompositeItemWriter<>();
+        compositeItemWriter.setDelegates(Arrays.asList(fileWriterAsYouGo, batchFileWriter));
+        return compositeItemWriter;
+    }
+
+    @Bean
+    private BatchFileWriter batchFileWriter() throws Exception {
+        return new BatchFileWriter();
+    }
+
+    @Bean
+    private FlatFileItemWriter<Translation> fileWriterAsYouGo() throws Exception {
+        FlatFileItemWriter<Translation> fileWriter = new FlatFileItemWriter<>();
         fileWriter.setEncoding("UTF-8");
         fileWriter.setResource(new FileSystemResource(new File("AsYouGo.txt")));
         fileWriter.setShouldDeleteIfExists(true);
         fileWriter.setLineAggregator(new PassThroughLineAggregator<>());
+        fileWriter.setLineAggregator(Translation::getTranslated);
         return fileWriter;
     }
 }

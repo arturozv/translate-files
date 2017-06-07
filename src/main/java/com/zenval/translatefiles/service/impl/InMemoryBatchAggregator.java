@@ -1,6 +1,7 @@
 package com.zenval.translatefiles.service.impl;
 
 import com.zenval.translatefiles.service.BatchAggregator;
+import com.zenval.translatefiles.service.Translation;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,7 +24,7 @@ import static java.util.stream.Collectors.toList;
 public class InMemoryBatchAggregator implements BatchAggregator {
     private static final Logger logger = LoggerFactory.getLogger(InMemoryBatchAggregator.class);
 
-    private BlockingQueue<QueueItem> queue = new ArrayBlockingQueue<>(1_000_000);
+    private BlockingQueue<Translation> queue = new ArrayBlockingQueue<>(1_000_000);
     private final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
     private Map<Long, BatchItem> wordsByLineNumber = new HashMap<>();
     private Map<String, Long> lineCountByFile = new HashMap<>();
@@ -35,13 +36,13 @@ public class InMemoryBatchAggregator implements BatchAggregator {
         executorService.scheduleAtFixedRate(() -> {
             int toDrain = queue.size();
             if (toDrain > 0) {
-                List<QueueItem> toProcess = new ArrayList<>();
+                List<Translation> toProcess = new ArrayList<>();
                 queue.drainTo(toProcess, toDrain);
 
                 if (toProcess.size() > 0) {
                     logger.debug("aggregating {} words", toProcess.size());
 
-                    Map<Long, List<QueueItem>> wordsByLineNumber = groupByLine(toProcess);
+                    Map<Long, List<Translation>> wordsByLineNumber = groupByLine(toProcess);
                     addToMainMap(wordsByLineNumber, this.wordsByLineNumber);
                 }
             }
@@ -50,14 +51,14 @@ public class InMemoryBatchAggregator implements BatchAggregator {
         return this;
     }
 
-    Map<Long, List<QueueItem>> groupByLine(List<QueueItem> toProcess) {
-        return toProcess.stream().collect(groupingBy(QueueItem::getLine, mapping(Function.identity(), toList())));
+    Map<Long, List<Translation>> groupByLine(List<Translation> toProcess) {
+        return toProcess.stream().collect(groupingBy(Translation::getLine, mapping(Function.identity(), toList())));
     }
 
-    void addToMainMap(Map<Long, List<QueueItem>> from, Map<Long, BatchItem> to) {
-        for (Map.Entry<Long, List<QueueItem>> entry : from.entrySet()) {
+    void addToMainMap(Map<Long, List<Translation>> from, Map<Long, BatchItem> to) {
+        for (Map.Entry<Long, List<Translation>> entry : from.entrySet()) {
             Long lineNumber = entry.getKey();
-            List<QueueItem> words = entry.getValue();
+            List<Translation> words = entry.getValue();
 
             BatchItem batchItem = to.get(lineNumber);
 
@@ -72,7 +73,7 @@ public class InMemoryBatchAggregator implements BatchAggregator {
 
     @Override
     public void enqueue(String text, Long line, String fileId) {
-        queue.add(new QueueItem(text, line, fileId));
+        //queue.add(new Translation(text, line, fileId));
     }
 
     @Override
@@ -110,30 +111,6 @@ public class InMemoryBatchAggregator implements BatchAggregator {
             sb.append(", expected=").append(expected);
             sb.append('}');
             return sb.toString();
-        }
-    }
-
-    public class QueueItem {
-        private String text;
-        private Long line;
-        private String fileId;
-
-        public QueueItem(String text, Long line, String fileId) {
-            this.text = text;
-            this.line = line;
-            this.fileId = fileId;
-        }
-
-        public String getText() {
-            return text;
-        }
-
-        public Long getLine() {
-            return line;
-        }
-
-        public String getFileId() {
-            return fileId;
         }
     }
 }

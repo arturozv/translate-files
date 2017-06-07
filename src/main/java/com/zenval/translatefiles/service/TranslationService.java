@@ -1,6 +1,6 @@
 package com.zenval.translatefiles.service;
 
-public interface TranslateService {
+public interface TranslationService {
 
     /**
      * Translate a text from a language to another
