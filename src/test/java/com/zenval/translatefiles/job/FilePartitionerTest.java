@@ -3,6 +3,7 @@ package com.zenval.translatefiles.job;
 import com.zenval.translatefiles.dto.Files;
 import com.zenval.translatefiles.job.components.BatchFileWriter;
 import com.zenval.translatefiles.job.components.FilePartitioner;
+import com.zenval.translatefiles.service.BatchAggregator;
 
 import org.junit.Test;
 import org.springframework.batch.item.ExecutionContext;
@@ -24,7 +25,7 @@ public class FilePartitionerTest {
     @Test
     public void when_null_partitionMap_isEmpty() {
         //given
-        FilePartitioner filePartitioner = new FilePartitioner(null, mock(BatchFileWriter.class));
+        FilePartitioner filePartitioner = new FilePartitioner(null, mock(BatchAggregator.class));
 
         //when
         Map<String, ExecutionContext> partitionMap = filePartitioner.partition(0);
@@ -39,15 +40,15 @@ public class FilePartitionerTest {
         //given
         Files files = mock(Files.class);
         when(files.getPaths()).thenReturn(new ArrayList<>());
-        BatchFileWriter batchFileWriter = mock(BatchFileWriter.class);
-        FilePartitioner filePartitioner = new FilePartitioner(files, batchFileWriter);
+        BatchAggregator batchAggregator = mock(BatchAggregator.class);
+        FilePartitioner filePartitioner = new FilePartitioner(files, batchAggregator);
 
         //when
         Map<String, ExecutionContext> partitionMap = filePartitioner.partition(0);
 
         //then
         assertThat(partitionMap).isEmpty();
-        verify(batchFileWriter, times(0)).registerFileLength(anyString(), anyLong());
+        verify(batchAggregator, times(0)).registerFileLength(anyString(), anyLong());
     }
 
     @Test
@@ -56,8 +57,8 @@ public class FilePartitionerTest {
         String fileName = "file1";
         Files files = mock(Files.class);
         when(files.getPaths()).thenReturn(Collections.singletonList(fileName));
-        BatchFileWriter batchFileWriter = mock(BatchFileWriter.class);
-        FilePartitioner filePartitioner = new FilePartitioner(files, batchFileWriter);
+        BatchAggregator batchAggregator = mock(BatchAggregator.class);
+        FilePartitioner filePartitioner = new FilePartitioner(files, batchAggregator);
 
         //when
         Map<String, ExecutionContext> partitionMap = filePartitioner.partition(0);
@@ -69,6 +70,6 @@ public class FilePartitionerTest {
         assertThat(partitionMap.get(fileName).containsKey(FilePartitioner.LINE_COUNT_KEY));
         assertThat(partitionMap.get(fileName).containsKey(FilePartitioner.FILE_ID_KEY));
 
-        verify(batchFileWriter, times(1)).registerFileLength(anyString(), anyLong());
+        verify(batchAggregator, times(1)).registerFileLength(anyString(), anyLong());
     }
 }

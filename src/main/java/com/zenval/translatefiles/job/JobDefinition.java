@@ -5,6 +5,7 @@ import com.zenval.translatefiles.dto.Translation;
 import com.zenval.translatefiles.job.components.BatchFileWriter;
 import com.zenval.translatefiles.job.components.FilePartitioner;
 import com.zenval.translatefiles.job.components.TranslateProcessor;
+import com.zenval.translatefiles.service.BatchAggregator;
 import com.zenval.translatefiles.service.TranslationService;
 import com.zenval.translatefiles.service.impl.TestTranslationService;
 
@@ -52,7 +53,6 @@ public class JobDefinition {
     }
 
     private TaskExecutor taskExecutor() {
-
         ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
         taskExecutor.setMaxPoolSize(threads);
         taskExecutor.setCorePoolSize(threads);
@@ -116,8 +116,8 @@ public class JobDefinition {
     }
 
     @Bean
-    public BatchFileWriter batchFileWriter() throws Exception {
-        return new BatchFileWriter();
+    public BatchFileWriter batchFileWriter(BatchAggregator batchAggregator) throws Exception {
+        return new BatchFileWriter(batchAggregator);
     }
 
     @Bean
@@ -128,7 +128,8 @@ public class JobDefinition {
         fileWriter.setShouldDeleteIfExists(true);
         fileWriter.setLineAggregator(new PassThroughLineAggregator<>());
         fileWriter.setLineAggregator(Translation::getTranslated);
-        fileWriter.open(new ExecutionContext());
+        fileWriter.setSaveState(false);
+        fileWriter.setTransactional(false);
         return fileWriter;
     }
 }
