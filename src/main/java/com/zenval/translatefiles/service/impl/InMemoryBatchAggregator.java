@@ -49,11 +49,6 @@ public class InMemoryBatchAggregator implements BatchAggregator {
         logger.info("file {} registered", fileId);
     }
 
-    @Override
-    public boolean isCompleted() {
-        return wordsByLineNumber.isEmpty();
-    }
-
     Map<Long, List<Translation>> groupByLine(List<Translation> toProcess) {
         return toProcess.stream().collect(groupingBy(Translation::getLine, mapping(Function.identity(), toList())));
     }
@@ -93,6 +88,6 @@ public class InMemoryBatchAggregator implements BatchAggregator {
         if (lineNumber <= minLineNumber.get()) {
             return lineCountByFile.size();
         }
-        return lineCountByFile.entrySet().stream().filter(a -> a.getValue() <= lineNumber).count();
+        return lineCountByFile.entrySet().stream().filter(a -> a.getValue() >= lineNumber).count();
     }
 }

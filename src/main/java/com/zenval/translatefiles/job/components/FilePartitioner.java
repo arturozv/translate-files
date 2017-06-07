@@ -34,6 +34,7 @@ public class FilePartitioner implements Partitioner {
     @Override
     public Map<String, ExecutionContext> partition(int gridSize) {
         Map<String, ExecutionContext> partitionMap = new HashMap<>();
+        logger.info("Partitioning process...");
 
         if (files != null) {
             for (String path : files.getPaths()) {

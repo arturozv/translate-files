@@ -31,11 +31,4 @@ public class BatchFileWriter implements ItemWriter<Translation> {
     void writeBatch(BatchGroup batchGroup) {
         logger.info("writing batch {}", batchGroup);
     }
-
-    /*@AfterStep
-    public void waitUntilDone() throws InterruptedException {
-        while (!batchAggregator.isCompleted()) {
-            Thread.sleep(100);
-        }
-    }*/
 }
