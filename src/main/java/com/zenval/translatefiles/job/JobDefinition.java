@@ -1,6 +1,5 @@
 package com.zenval.translatefiles.job;
 
-import com.zenval.translatefiles.dto.Files;
 import com.zenval.translatefiles.dto.TextAndLine;
 import com.zenval.translatefiles.dto.Translation;
 import com.zenval.translatefiles.file.FileLineCounter;
@@ -45,16 +44,13 @@ public class JobDefinition {
     private static final String AS_YOU_GO_FILE = "AsYouGo.txt";
     private static final String BATCHED_FILE = "Batched.txt";
 
-    private final int threads = 8;
+    private final int threads = 1;
 
     @Autowired
     private JobBuilderFactory jobs;
 
     @Autowired
     private StepBuilderFactory stepBuilder;
-
-    @Autowired
-    private Files files;
 
     @Bean(name = "translateFilesJob")
     public Job translateFilesJob(Step clearFilesStep, Step fileTranslateStep, Step validateFilesStep) {
@@ -91,26 +87,25 @@ public class JobDefinition {
     }
 
     @Bean
-    public Step fileTranslateStep(FilePartitioner filePartitioner, @Qualifier("fileTranslateSlaveStep") Step fileTranslateSlaveStep, TaskExecutor taskExecutor) {
+    public Step fileTranslateStep(FilePartitioner filePartitioner, @Qualifier("fileTranslateSlaveStep") Step fileTranslateSlaveStep) {
         return stepBuilder.get("fileTranslateStep")
                 .partitioner(fileTranslateSlaveStep)
                 .partitioner("filePartitioner", filePartitioner)
-                .taskExecutor(taskExecutor)
+                .taskExecutor(taskExecutor())
                 .build();
     }
 
     @Bean(name = "fileTranslateSlaveStep")
     public Step fileTranslateSlaveStep(FlatFileItemReader<TextAndLine> fileReader,
                                        TranslateProcessor translateProcessor,
-                                       CompositeItemWriter<Translation> itemWriter,
-                                       TaskExecutor taskExecutor) {
+                                       CompositeItemWriter<Translation> itemWriter) {
         int chunkSize = 2;
         return stepBuilder.get("fileTranslateSlaveStep").
                 <TextAndLine, Translation>chunk(chunkSize)
                 .reader(fileReader)
                 .processor(translateProcessor)
                 .writer(itemWriter)
-                .taskExecutor(taskExecutor)
+                .taskExecutor(taskExecutor())
                 .throttleLimit(threads)
                 .build();
     }
@@ -163,7 +158,6 @@ public class JobDefinition {
         return fileWriter;
     }
 
-    @Bean
     public TaskExecutor taskExecutor() {
         ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
         taskExecutor.setMaxPoolSize(threads);
