@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.mapping;
@@ -25,6 +26,7 @@ public class InMemoryBatchAggregator implements BatchAggregator {
     private static final Logger logger = LoggerFactory.getLogger(InMemoryBatchAggregator.class);
 
     private Map<String, Long> lineCountByFile = new HashMap<>();
+    private Map<Long, Long> expectedTranslationsByLineNumber = new HashMap<>();
     private Map<Long, BatchGroup> wordsByLineNumber = new HashMap<>();
     private AtomicLong minLineNumber;
 
@@ -74,10 +76,10 @@ public class InMemoryBatchAggregator implements BatchAggregator {
 
             batchGroup.getTranslations().addAll(words);
 
-            logger.info("Checking line {}. Expected: {}, current: {}", lineNumber, batchGroup.getExpectedWordCount(), batchGroup.getTranslations().size());
+            logger.debug("Checking line {}. Expected: {}, current: {}", lineNumber, batchGroup.getExpectedWordCount(), batchGroup.getTranslations().size());
 
             if (batchGroup.getTranslations().size() == batchGroup.getExpectedWordCount()) {
-                logger.info("line {} complete!", lineNumber);
+                logger.debug("line {} complete!", lineNumber);
                 writeBatch(batchGroup);
                 to.remove(lineNumber);
             } else {
@@ -90,10 +92,19 @@ public class InMemoryBatchAggregator implements BatchAggregator {
         callback.onLineComplete(batchGroup);
     }
 
-    long getExpectedWordCount(long lineNumber) {
-        if (lineNumber <= minLineNumber.get()) {
-            return lineCountByFile.size();
+    Long getExpectedWordCount(long lineNumber) {
+        Long expected = expectedTranslationsByLineNumber.get(lineNumber);
+
+        if (expected == null) {
+            if (lineNumber <= minLineNumber.get()) {
+                expected = (long) lineCountByFile.size();
+            } else {
+                List<String> files = lineCountByFile.entrySet().stream().filter(fileLineCount -> fileLineCount.getValue() >= lineNumber).map(Map.Entry::getKey).collect(Collectors.toList());
+                logger.debug("getExpectedWordCount -> lineNumber: {}, files: {}, lineCountByFile: {}", lineNumber, files, lineCountByFile);
+                expected = (long) files.size();
+            }
+            expectedTranslationsByLineNumber.put(lineNumber, expected);
         }
-        return lineCountByFile.entrySet().stream().filter(a -> a.getValue() >= lineNumber).count();
+        return expected;
     }
 }
