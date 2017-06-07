@@ -22,6 +22,7 @@ import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.file.FlatFileItemReader;
 import org.springframework.batch.item.file.FlatFileItemWriter;
+import org.springframework.batch.item.file.transform.LineAggregator;
 import org.springframework.batch.item.file.transform.PassThroughLineAggregator;
 import org.springframework.batch.item.support.CompositeItemWriter;
 import org.springframework.batch.repeat.RepeatStatus;
@@ -80,8 +81,8 @@ public class JobDefinition {
     public Step validateFilesStep(BatchAggregator batchAggregator) {
         return stepBuilder.get("validateFilesStep").tasklet((contribution, chunkContext) -> {
             long totalLines = batchAggregator.getTotalLines();
-            Long asyougoCount = FileLineCounter.getFileLineCount(new File(AS_YOU_GO_FILE));
-            Long batchedCount = FileLineCounter.getFileLineCount(new File(BATCHED_FILE));
+            Long asyougoCount = FileLineCounter.getFileLineCount(new File(AS_YOU_GO_FILE)) - 1;
+            Long batchedCount = FileLineCounter.getFileLineCount(new File(BATCHED_FILE)) - 1;
             logger.info("Total lines: {}, {} lines: {}, {} lines: {}", totalLines, AS_YOU_GO_FILE, asyougoCount, BATCHED_FILE, batchedCount);
             return RepeatStatus.FINISHED;
         }).build();
@@ -137,26 +138,38 @@ public class JobDefinition {
     }
 
     @Bean
-    public BatchFileWriter batchFileWriter(BatchAggregator batchAggregator) throws Exception {
-        return new BatchFileWriter(batchAggregator);
+    public BatchFileWriter batchFileWriter(BatchAggregator batchAggregator, ItemWriter<String> fileWriterBatched) throws Exception {
+        return new BatchFileWriter(batchAggregator, fileWriterBatched);
     }
 
     @Bean
     @StepScope
     public ItemWriter<Translation> fileWriterAsYouGo() throws Exception {
-        FlatFileItemWriter<Translation> fileWriter = new FlatFileItemWriter<>();
+        return getItemWriter(AS_YOU_GO_FILE, Translation::getTranslated);
+    }
+
+    @Bean
+    public ItemWriter<String> fileWriterBatched() throws Exception {
+        return getItemWriter(BATCHED_FILE, null);
+    }
+
+    private <T> ItemWriter<T> getItemWriter(String file, LineAggregator<T> lineAggregator) throws Exception {
+        FlatFileItemWriter<T> fileWriter = new FlatFileItemWriter<>();
         fileWriter.setEncoding("UTF-8");
-        fileWriter.setResource(new FileSystemResource(new File(AS_YOU_GO_FILE)));
+        fileWriter.setResource(new FileSystemResource(new File(file)));
         fileWriter.setShouldDeleteIfExists(false);
         fileWriter.setAppendAllowed(true);
         fileWriter.setLineAggregator(new PassThroughLineAggregator<>());
-        fileWriter.setLineAggregator(Translation::getTranslated);
+        if (lineAggregator != null) {
+            fileWriter.setLineAggregator(lineAggregator);
+        }
         fileWriter.setSaveState(false);
         fileWriter.setTransactional(false);
         fileWriter.open(new ExecutionContext());
         fileWriter.afterPropertiesSet();
         return fileWriter;
     }
+
 
     public TaskExecutor taskExecutor() {
         ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();

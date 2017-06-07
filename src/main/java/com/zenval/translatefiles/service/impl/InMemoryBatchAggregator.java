@@ -28,14 +28,15 @@ public class InMemoryBatchAggregator implements BatchAggregator {
     private Map<String, Long> lineCountByFile = new HashMap<>();
     private Map<Long, Long> expectedTranslationsByLineNumber = new HashMap<>();
     private Map<Long, BatchGroup> wordsByLineNumber = new HashMap<>();
+    private AtomicLong processedLineNumber = new AtomicLong(0);
     private AtomicLong minLineNumber;
 
     private Callback callback;
 
     @Override
-    public void aggregate(Translation... translations) {
+    public synchronized void aggregate(Translation... translations) {
         Map<Long, List<Translation>> wordsByLineNumber = groupByLine(Arrays.asList(translations));
-        addToMainMap(wordsByLineNumber, this.wordsByLineNumber);
+        addToMainMap(wordsByLineNumber);
     }
 
     @Override
@@ -61,13 +62,13 @@ public class InMemoryBatchAggregator implements BatchAggregator {
         return toProcess.stream().collect(groupingBy(Translation::getLine, mapping(Function.identity(), toList())));
     }
 
-    void addToMainMap(Map<Long, List<Translation>> from, Map<Long, BatchGroup> to) {
+    void addToMainMap(Map<Long, List<Translation>> from) {
 
         for (Map.Entry<Long, List<Translation>> entry : from.entrySet()) {
             Long lineNumber = entry.getKey();
             List<Translation> words = entry.getValue();
 
-            BatchGroup batchGroup = to.get(lineNumber);
+            BatchGroup batchGroup = this.wordsByLineNumber.get(lineNumber);
 
             if (batchGroup == null) {
                 Long expectedWordCount = getExpectedWordCount(lineNumber);
@@ -79,16 +80,17 @@ public class InMemoryBatchAggregator implements BatchAggregator {
             logger.debug("Checking line {}. Expected: {}, current: {}", lineNumber, batchGroup.getExpectedWordCount(), batchGroup.getTranslations().size());
 
             if (batchGroup.getTranslations().size() == batchGroup.getExpectedWordCount()) {
-                logger.debug("line {} complete!", lineNumber);
-                writeBatch(batchGroup);
-                to.remove(lineNumber);
+                writeBatch(lineNumber, batchGroup);
             } else {
-                to.put(lineNumber, batchGroup);
+                this.wordsByLineNumber.put(lineNumber, batchGroup);
             }
         }
     }
 
-    void writeBatch(BatchGroup batchGroup) {
+    void writeBatch(Long lineNumber, BatchGroup batchGroup) {
+        logger.debug("line {} complete!", lineNumber);
+        this.wordsByLineNumber.remove(lineNumber);
+
         callback.onLineComplete(batchGroup);
     }
 

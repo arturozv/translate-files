@@ -10,16 +10,20 @@ import org.springframework.batch.item.ItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class BatchFileWriter implements ItemWriter<Translation> {
     private static final Logger logger = LoggerFactory.getLogger(BatchFileWriter.class);
 
     private BatchAggregator batchAggregator;
+    private ItemWriter<String> flatFileItemWriter;
 
     @Autowired
-    public BatchFileWriter(BatchAggregator batchAggregator) {
+    public BatchFileWriter(BatchAggregator batchAggregator, ItemWriter<String> flatFileItemWriter) {
         this.batchAggregator = batchAggregator;
         this.batchAggregator.registerCallback(this::writeBatch);
+        this.flatFileItemWriter = flatFileItemWriter;
+
     }
 
     @Override
@@ -30,5 +34,11 @@ public class BatchFileWriter implements ItemWriter<Translation> {
 
     void writeBatch(BatchGroup batchGroup) {
         logger.info("writing batch {}", batchGroup);
+        List<String> words = batchGroup.getTranslations().stream().map(Translation::getTranslated).collect(Collectors.toList());
+        try {
+            flatFileItemWriter.write(words);
+        } catch (Exception e) {
+            logger.error("error writing batch {}", batchGroup, e);
+        }
     }
 }
