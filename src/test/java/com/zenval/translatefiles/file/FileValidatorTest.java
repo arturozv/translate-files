@@ -11,9 +11,6 @@ import java.nio.charset.Charset;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-/**
- * Created by arturo on 05/06/17.
- */
 public class FileValidatorTest {
     @Rule
     public TemporaryFolder testFolder = new TemporaryFolder();
@@ -72,5 +69,17 @@ public class FileValidatorTest {
 
         }).isInstanceOf(InvalidFileException.class)
                 .hasMessageContaining("null");
+    }
+
+    @Test
+    public void file_with_empty_lines() throws Exception {
+        File fileOk = testFolder.newFile("emptylines.txt");
+        FileUtils.writeStringToFile(fileOk, "content\n", Charset.defaultCharset());
+
+        assertThatCode(() -> {
+            FileValidator.validate(fileOk);
+
+        }).isInstanceOf(InvalidFileException.class)
+                .hasMessageContaining("empty");
     }
 }

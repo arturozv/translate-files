@@ -1,6 +1,8 @@
 package com.zenval.translatefiles.file;
 
 import java.io.File;
+import java.io.FileReader;
+import java.io.LineNumberReader;
 
 /**
  * File validation
@@ -35,6 +37,24 @@ public class FileValidator {
 
         } else if (file.length() == 0) {
             throw new InvalidFileException("File " + file.getName() + " is empty!!");
+
+        } else if (hasEmptyLines(file)) {
+            throw new InvalidFileException("File " + file.getName() + " has empty lines!!");
         }
+    }
+
+    static boolean hasEmptyLines(File file) throws InvalidFileException {
+        try {
+
+            LineNumberReader lnr = new LineNumberReader(new FileReader(file));
+            lnr.skip(Long.MAX_VALUE); //go to the end of the file
+            if (lnr.readLine() == null) {
+                return true;
+            }
+
+        } catch (java.io.IOException e) {
+            throw new InvalidFileException("Error validating file " + file.getName());
+        }
+        return false;
     }
 }
