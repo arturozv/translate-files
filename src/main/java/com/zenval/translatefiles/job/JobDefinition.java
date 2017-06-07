@@ -45,6 +45,7 @@ public class JobDefinition {
     private static final String BATCHED_FILE = "Batched.txt";
 
     private final int threads = 1;
+    private final int chunkSize = 100;
 
     @Autowired
     private JobBuilderFactory jobs;
@@ -99,7 +100,6 @@ public class JobDefinition {
     public Step fileTranslateSlaveStep(FlatFileItemReader<TextAndLine> fileReader,
                                        TranslateProcessor translateProcessor,
                                        CompositeItemWriter<Translation> itemWriter) {
-        int chunkSize = 2;
         return stepBuilder.get("fileTranslateSlaveStep").
                 <TextAndLine, Translation>chunk(chunkSize)
                 .reader(fileReader)

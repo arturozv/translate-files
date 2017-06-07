@@ -74,7 +74,7 @@ public class FileValidatorTest {
     @Test
     public void file_with_empty_lines() throws Exception {
         File fileOk = testFolder.newFile("emptylines.txt");
-        FileUtils.writeStringToFile(fileOk, "content\n", Charset.defaultCharset());
+        FileUtils.writeStringToFile(fileOk, "content1\ncontent2\n", Charset.defaultCharset());
 
         assertThatCode(() -> {
             FileValidator.validate(fileOk);

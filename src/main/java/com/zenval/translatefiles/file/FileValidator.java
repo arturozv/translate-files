@@ -1,8 +1,7 @@
 package com.zenval.translatefiles.file;
 
 import java.io.File;
-import java.io.FileReader;
-import java.io.LineNumberReader;
+import java.io.RandomAccessFile;
 
 /**
  * File validation
@@ -38,23 +37,31 @@ public class FileValidator {
         } else if (file.length() == 0) {
             throw new InvalidFileException("File " + file.getName() + " is empty!!");
 
-        } else if (hasEmptyLines(file)) {
+        } else if (endsWithEmptyLines(file)) {
             throw new InvalidFileException("File " + file.getName() + " has empty lines!!");
         }
     }
 
-    static boolean hasEmptyLines(File file) throws InvalidFileException {
+    static boolean endsWithEmptyLines(File file) throws InvalidFileException {
         try {
 
-            LineNumberReader lnr = new LineNumberReader(new FileReader(file));
-            lnr.skip(Long.MAX_VALUE); //go to the end of the file
-            if (lnr.readLine() == null) {
+            RandomAccessFile fileHandler = new RandomAccessFile(file, "r");
+            long fileLength = fileHandler.length() - 1;
+            if (fileLength < 0) {
+                fileHandler.close();
                 return true;
             }
+            fileHandler.seek(fileLength);
+            byte readByte = fileHandler.readByte();
+            fileHandler.close();
 
-        } catch (java.io.IOException e) {
+            if (readByte == 0xA || readByte == 0xD) {
+                return true;
+            }
+            return false;
+
+        } catch (Exception e) {
             throw new InvalidFileException("Error validating file " + file.getName());
         }
-        return false;
     }
 }
