@@ -10,6 +10,7 @@ import org.springframework.batch.item.ItemWriter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 
 import static java.util.stream.Collectors.groupingBy;
@@ -21,11 +22,11 @@ public class BatchFileWriter implements ItemWriter<Translation> {
 
     private Map<String, Long> lineCountByFile = new HashMap<>();
     private Map<Long, BatchGroup> wordsByLineNumber = new HashMap<>();
-    private long minLineNumber = 0;
+    private AtomicLong minLineNumber;
 
     @Override
     public void write(List<? extends Translation> items) throws Exception {
-        logger.info("aggregating {} words", items.size());
+        logger.info("aggregating {} words.", items.size());
         @SuppressWarnings("unchecked") Map<Long, List<Translation>> wordsByLineNumber = groupByLine((List<Translation>) items);
         addToMainMap(wordsByLineNumber, this.wordsByLineNumber);
     }
@@ -38,7 +39,11 @@ public class BatchFileWriter implements ItemWriter<Translation> {
      */
     public void registerFileLength(String fileId, Long lineCount) {
         lineCountByFile.put(fileId, lineCount);
-        minLineNumber = Math.min(minLineNumber, lineCount);
+        if (minLineNumber == null) {
+            minLineNumber = new AtomicLong(lineCount);
+        }
+        minLineNumber.set(Math.min(minLineNumber.get(), lineCount));
+        logger.info("file {} registered", fileId);
     }
 
     Map<Long, List<Translation>> groupByLine(List<Translation> toProcess) {
@@ -60,9 +65,9 @@ public class BatchFileWriter implements ItemWriter<Translation> {
 
             batchGroup.getTranslations().addAll(words);
 
-            logger.info("checking line {}. Expected: {}, current: {}", lineNumber, batchGroup.getExpectedWordCount(), batchGroup.getTranslations().size());
+            logger.info("Checking line {}. Expected: {}, current: {}", lineNumber, batchGroup.getExpectedWordCount(), batchGroup.getTranslations().size());
 
-            if(batchGroup.getTranslations().size() == batchGroup.getExpectedWordCount()) {
+            if (batchGroup.getTranslations().size() == batchGroup.getExpectedWordCount()) {
                 logger.info("line {} complete!", lineNumber);
                 writeBatch(batchGroup.getTranslations());
                 to.remove(lineNumber);
@@ -76,8 +81,8 @@ public class BatchFileWriter implements ItemWriter<Translation> {
 
     }
 
-    long getExpectedWordCount(Long lineNumber) {
-        if (lineNumber <= minLineNumber) {
+    long getExpectedWordCount(long lineNumber) {
+        if (lineNumber <= minLineNumber.get()) {
             return lineCountByFile.size();
         }
         return lineCountByFile.entrySet().stream().filter(a -> a.getValue() <= lineNumber).count();
