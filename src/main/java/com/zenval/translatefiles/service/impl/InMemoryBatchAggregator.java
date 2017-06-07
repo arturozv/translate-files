@@ -17,6 +17,7 @@ import java.util.function.Function;
 
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.mapping;
+import static java.util.stream.Collectors.summingLong;
 import static java.util.stream.Collectors.toList;
 
 @Component
@@ -47,6 +48,11 @@ public class InMemoryBatchAggregator implements BatchAggregator {
         }
         minLineNumber.set(Math.min(minLineNumber.get(), lineCount));
         logger.info("file {} registered", fileId);
+    }
+
+    @Override
+    public long getTotalLines() {
+        return lineCountByFile.values().stream().collect(summingLong(Long::longValue));
     }
 
     Map<Long, List<Translation>> groupByLine(List<Translation> toProcess) {

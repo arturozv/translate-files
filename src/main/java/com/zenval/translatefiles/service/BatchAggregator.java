@@ -18,6 +18,8 @@ public interface BatchAggregator {
      */
     void registerFileLength(String fileId, Long lineCount);
 
+    long getTotalLines();
+
     interface Callback {
         void onLineComplete(BatchGroup batchGroup);
     }
