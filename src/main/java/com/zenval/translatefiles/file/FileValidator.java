@@ -20,7 +20,7 @@ public class FileValidator {
      * @param file
      * @throws InvalidFileException
      */
-    static void validate(File file) throws InvalidFileException {
+    public static void validate(File file) throws InvalidFileException {
         if (file == null) {
             throw new InvalidFileException("File is null");
 

@@ -1,4 +1,4 @@
-package com.zenval.translatefiles.service;
+package com.zenval.translatefiles.dto;
 
 public class Translation {
     private String text;

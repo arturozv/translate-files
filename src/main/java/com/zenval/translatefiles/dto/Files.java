@@ -1,4 +1,7 @@
-package com.zenval.translatefiles.file;
+package com.zenval.translatefiles.dto;
+
+import com.zenval.translatefiles.file.FileValidator;
+import com.zenval.translatefiles.file.InvalidFileException;
 
 import java.io.File;
 import java.util.List;

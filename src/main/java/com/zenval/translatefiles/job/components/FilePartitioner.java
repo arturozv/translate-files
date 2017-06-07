@@ -1,8 +1,7 @@
 package com.zenval.translatefiles.job.components;
 
 import com.zenval.translatefiles.file.FileLineCounter;
-import com.zenval.translatefiles.file.Files;
-import com.zenval.translatefiles.service.BatchAggregator;
+import com.zenval.translatefiles.dto.Files;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,19 +22,19 @@ public class FilePartitioner implements Partitioner {
     public static final String FILE_ID_KEY = "fileId";
 
     private Files files;
-    private BatchAggregator batchAggregator;
+    private BatchFileWriter batchFileWriter;
 
     @Autowired
-    public FilePartitioner(Files files, BatchAggregator batchAggregator) {
+    public FilePartitioner(Files files, BatchFileWriter batchFileWriter) {
         this.files = files;
-        this.batchAggregator = batchAggregator;
+        this.batchFileWriter = batchFileWriter;
     }
 
     @Override
     public Map<String, ExecutionContext> partition(int gridSize) {
-        Map<String, ExecutionContext> partitionMap = new HashMap<String, ExecutionContext>();
+        Map<String, ExecutionContext> partitionMap = new HashMap<>();
 
-        if(files != null) {
+        if (files != null) {
             for (String path : files.getPaths()) {
                 File file = new File(path);
 
@@ -50,7 +49,7 @@ public class FilePartitioner implements Partitioner {
 
                 partitionMap.put(path, context);
 
-                batchAggregator.registerFileLength(path, lineCount);
+                batchFileWriter.registerFileLength(path, lineCount);
             }
         }
         return partitionMap;

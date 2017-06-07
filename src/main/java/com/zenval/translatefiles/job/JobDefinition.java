@@ -1,14 +1,11 @@
 package com.zenval.translatefiles.job;
 
-import com.zenval.translatefiles.file.Files;
+import com.zenval.translatefiles.dto.TextAndLine;
+import com.zenval.translatefiles.dto.Translation;
 import com.zenval.translatefiles.job.components.BatchFileWriter;
 import com.zenval.translatefiles.job.components.FilePartitioner;
-import com.zenval.translatefiles.job.components.TextAndLine;
 import com.zenval.translatefiles.job.components.TranslateProcessor;
-import com.zenval.translatefiles.service.BatchAggregator;
-import com.zenval.translatefiles.service.Translation;
 import com.zenval.translatefiles.service.TranslationService;
-import com.zenval.translatefiles.service.impl.InMemoryBatchAggregator;
 import com.zenval.translatefiles.service.impl.TestTranslationService;
 
 import org.slf4j.Logger;
@@ -18,6 +15,7 @@ import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepScope;
+import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.file.FlatFileItemReader;
 import org.springframework.batch.item.file.FlatFileItemWriter;
 import org.springframework.batch.item.file.transform.PassThroughLineAggregator;
@@ -38,15 +36,13 @@ import java.util.Arrays;
 public class JobDefinition {
     private static final Logger logger = LoggerFactory.getLogger(JobDefinition.class);
 
+    private final int threads = 4;
+
     @Autowired
     private JobBuilderFactory jobs;
 
     @Autowired
     private StepBuilderFactory stepBuilder;
-
-    @Autowired
-    @Qualifier("files")
-    private Files files;
 
     @Bean(name = "translateFilesJob")
     public Job translateFilesJob(Step fileTranslateStep) {
@@ -56,9 +52,10 @@ public class JobDefinition {
     }
 
     private TaskExecutor taskExecutor() {
+
         ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
-        taskExecutor.setMaxPoolSize(1);
-        taskExecutor.setCorePoolSize(1);
+        taskExecutor.setMaxPoolSize(threads);
+        taskExecutor.setCorePoolSize(threads);
         taskExecutor.afterPropertiesSet();
         return taskExecutor;
     }
@@ -66,11 +63,6 @@ public class JobDefinition {
     @Bean
     public TranslationService translateService() {
         return new TestTranslationService();
-    }
-
-    @Bean
-    public BatchAggregator batchAggregator() {
-        return new InMemoryBatchAggregator().start();
     }
 
     @Bean
@@ -100,7 +92,7 @@ public class JobDefinition {
                 .processor(translateProcessor)
                 .writer(itemWriter)
                 .taskExecutor(taskExecutor())
-                .throttleLimit(1)
+                .throttleLimit(threads)
                 .build();
     }
 
@@ -123,18 +115,19 @@ public class JobDefinition {
     }
 
     @Bean
-    private BatchFileWriter batchFileWriter() throws Exception {
+    public BatchFileWriter batchFileWriter() throws Exception {
         return new BatchFileWriter();
     }
 
     @Bean
-    private FlatFileItemWriter<Translation> fileWriterAsYouGo() throws Exception {
+    public FlatFileItemWriter<Translation> fileWriterAsYouGo() throws Exception {
         FlatFileItemWriter<Translation> fileWriter = new FlatFileItemWriter<>();
         fileWriter.setEncoding("UTF-8");
         fileWriter.setResource(new FileSystemResource(new File("AsYouGo.txt")));
         fileWriter.setShouldDeleteIfExists(true);
         fileWriter.setLineAggregator(new PassThroughLineAggregator<>());
         fileWriter.setLineAggregator(Translation::getTranslated);
+        fileWriter.open(new ExecutionContext());
         return fileWriter;
     }
 }

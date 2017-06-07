@@ -1,6 +1,7 @@
 package com.zenval.translatefiles.job.components;
 
-import com.zenval.translatefiles.service.Translation;
+import com.zenval.translatefiles.dto.TextAndLine;
+import com.zenval.translatefiles.dto.Translation;
 import com.zenval.translatefiles.service.TranslationException;
 import com.zenval.translatefiles.service.TranslationService;
 
