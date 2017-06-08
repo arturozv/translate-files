@@ -15,6 +15,5 @@ Translates the content of the input files. Check the problem definition at [prob
 - Good old battle tested framework
 
 **Run times:**
-
-- 8 files, 100k lines per file = 800k lines -> 40secs
-- 8 files, 10M lines per file = 80M lines -> 4000secs
+- 3 files with 50 words per file = 150 lines -> 3,5s (using google translate api)
+- 8 files, 100k lines per file = 800k lines -> 40secs (using mock translations to avoid api rate limits)
