@@ -5,7 +5,7 @@ Translates the content of the input files. Check the definition in [Test.txt](Te
 ***How to run it:***
 
 - _Option 1_: import the project to your IDE and run the [TranslateFilesApplication.java](src/main/java/com/zenval/translatefiles/TranslateFilesApplication.java) main
-- _Option 2_: install the project with maven and run the jar. check the shell `run.sh`
+- _Option 2_: install the project with maven and run the jar. check the [shell](run.sh) `run.sh`
 
 ***Why Spring Batch:***
 
