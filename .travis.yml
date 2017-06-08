@@ -4,7 +4,7 @@ jdk:
   - oraclejdk8
 
 script:
-  - ./mvnw clean install
+  - ./mvnw clean test install
 
 notifications:
   email: false
