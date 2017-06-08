@@ -1,6 +1,6 @@
 **What it does:**
 
-Translates the content of the input files. Check the problem definition at [problem.txt](problem.txt)
+Translates the content of the input files. Check the problem definition at [problem.txt](Test.txt)
 
 **How to run it:**
 
