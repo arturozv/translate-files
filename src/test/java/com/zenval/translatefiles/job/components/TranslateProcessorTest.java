@@ -1,7 +1,5 @@
 package com.zenval.translatefiles.job.components;
 
-import com.zenval.translatefiles.dto.TextAndLine;
-import com.zenval.translatefiles.dto.Translation;
 import com.zenval.translatefiles.service.TranslationException;
 import com.zenval.translatefiles.service.TranslationService;
 
@@ -24,24 +22,19 @@ public class TranslateProcessorTest {
     @Test
     public void when_isOk() throws Exception {
         //given
-        String fileName = "file1";
         String textToTranslate = "textToTranslate";
         String translated = "translated";
-        long line = 1l;
         TranslationService translationService = mock(TranslationService.class);
 
         when(translationService.translate(eq(textToTranslate), anyString(), anyString())).thenReturn(translated);
 
-        TranslateProcessor translateProcessor = new TranslateProcessor(fileName, translationService);
+        TranslateProcessor translateProcessor = new TranslateProcessor(translationService);
 
         //when
-        Translation result = translateProcessor.process(new TextAndLine(textToTranslate, line));
+        String result = translateProcessor.process(textToTranslate);
 
         //then
-        assertThat(result.getText()).isEqualTo(textToTranslate);
-        assertThat(result.getTranslated()).isEqualTo(translated);
-        assertThat(result.getLine()).isEqualTo(line);
-        assertThat(result.getFileId()).isEqualTo(fileName);
+        assertThat(result).isEqualTo(translated);
 
         verify(translationService, times(1)).translate(eq(textToTranslate), anyString(), anyString());
     }
@@ -49,19 +42,18 @@ public class TranslateProcessorTest {
     @Test
     public void when_exception_no_shutdown_translated_equals_text() throws Exception {
         //given
-        String fileName = "file1";
         String textToTranslate = "textToTranslate";
         TranslationService translationService = mock(TranslationService.class);
 
         when(translationService.translate(eq(textToTranslate), anyString(), anyString())).thenThrow(new TranslationException("test", false));
 
-        TranslateProcessor translateProcessor = new TranslateProcessor(fileName, translationService);
+        TranslateProcessor translateProcessor = new TranslateProcessor(translationService);
 
         //when
-        Translation result = translateProcessor.process(new TextAndLine(textToTranslate, 1));
+        String result = translateProcessor.process(textToTranslate);
 
         //then
-        assertThat(result.getTranslated()).isEqualTo(textToTranslate); //same as original text
+        assertThat(result).isEqualTo(textToTranslate); //same as original text
 
         verify(translationService, times(1)).translate(eq(textToTranslate), anyString(), anyString());
     }
@@ -69,18 +61,17 @@ public class TranslateProcessorTest {
     @Test
     public void when_exception_and_shutdown() throws Exception {
         //given
-        String fileName = "file1";
         String textToTranslate = "textToTranslate";
         TranslationService translationService = mock(TranslationService.class);
 
         when(translationService.translate(eq(textToTranslate), anyString(), anyString())).thenThrow(new TranslationException("test", true));
 
-        TranslateProcessor translateProcessor = new TranslateProcessor(fileName, translationService);
+        TranslateProcessor translateProcessor = new TranslateProcessor(translationService);
 
         //when
 
         assertThatThrownBy(() -> {
-            translateProcessor.process(new TextAndLine(textToTranslate, 1));
+            translateProcessor.process(textToTranslate);
 
         }).isInstanceOf(TranslationException.class)
                 .hasFieldOrPropertyWithValue("shutdown", true);

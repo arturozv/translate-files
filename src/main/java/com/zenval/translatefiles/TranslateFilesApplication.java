@@ -6,7 +6,6 @@ import com.zenval.translatefiles.file.InvalidFileException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.Job;
-import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.core.JobParametersInvalidException;
 import org.springframework.batch.core.launch.JobLauncher;
@@ -43,9 +42,9 @@ public class TranslateFilesApplication {
         Job job = (Job) context.getBean("translateFilesJob");
 
         try {
-
-            JobExecution jobExecution = jobLauncher.run(job, new JobParametersBuilder().addString("run.id", UUID.randomUUID().toString()).toJobParameters());
-            logger.info("Process finished! {}", jobExecution);
+            long ini = System.currentTimeMillis();
+            jobLauncher.run(job, new JobParametersBuilder().addString("run.id", UUID.randomUUID().toString()).toJobParameters());
+            logger.info("Process finished in {}ms", (System.currentTimeMillis() - ini));
             context.close();
             System.exit(0);
 

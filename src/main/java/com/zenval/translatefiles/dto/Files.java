@@ -62,7 +62,7 @@ public class Files {
                 totalLinesCount += count;
             }
 
-            logger.info("Preparing to process {} files with a total number of lines of {}", paths.size(), totalLinesCount);
+            logger.info("Preparing to process {} files with {} number of lines", paths.size(), totalLinesCount);
 
             return new Files(paths, lineCount, totalLinesCount);
         }
