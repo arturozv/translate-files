@@ -14,8 +14,10 @@ public class GenerateTestFiles {
 
     @Test
     public void generateTestFiles() throws Exception {
+        int files = 4;
         int maxLines = 1000000;
-        for (int file = 1; file <= 10; file++) {
+
+        for (int file = 1; file <= files; file++) {
             try (Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("file" + file), "utf-8"))) {
                 StringBuffer stringBuffer = new StringBuffer();
                 for (int word = 1; word <= maxLines - file; word++) {

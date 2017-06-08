@@ -47,7 +47,7 @@ public class JobDefinition {
     private static final String BATCHED_FILE = "Batched.txt";
 
     private final int threads = 1;
-    private final int chunkSize = 100;
+    private final int chunkSize = 10000;
 
     @Autowired
     private JobBuilderFactory jobs;
@@ -66,8 +66,8 @@ public class JobDefinition {
 
     @Bean
     public TranslationService translateService() {
-        //return new TestTranslationService();
-        return new GoogleTranslationService();
+        return new TestTranslationService();
+        //return new GoogleTranslationService();
     }
 
     @Bean
