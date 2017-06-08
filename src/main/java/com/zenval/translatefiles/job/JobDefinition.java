@@ -126,9 +126,13 @@ public class JobDefinition {
     public Step validateOutputFilesStep(Files files) {
         return stepBuilder.get("validateOutputFilesStep").tasklet((contribution, chunkContext) -> {
             long totalLines = files.getTotalLinesCount();
-            Long asyougoCount = FileLineCounter.getFileLineCount(new File(AS_YOU_GO_FILE)) - 1;
-            Long batchedCount = FileLineCounter.getFileLineCount(new File(BATCHED_FILE)) - 1;
-            logger.info("RESULT -> Total lines: {}, {} lines: {}, {} lines: {}", totalLines, AS_YOU_GO_FILE, asyougoCount, BATCHED_FILE, batchedCount);
+            long asYouGoCount = FileLineCounter.getFileLineCount(new File(AS_YOU_GO_FILE)) - 1;
+            long batchedCount = FileLineCounter.getFileLineCount(new File(BATCHED_FILE)) - 1;
+
+            boolean isCorrect = totalLines == asYouGoCount && totalLines == batchedCount;
+            chunkContext.getStepContext().getStepExecution().getJobExecution().getExecutionContext().put("result", isCorrect);
+
+            logger.info("RESULT {} -> Total lines: {}, {} lines: {}, {} lines: {}", (isCorrect ? "OK" : "KO"), totalLines, AS_YOU_GO_FILE, asYouGoCount, BATCHED_FILE, batchedCount);
             return RepeatStatus.FINISHED;
         }).build();
     }

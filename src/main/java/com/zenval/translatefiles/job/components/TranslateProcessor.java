@@ -16,6 +16,7 @@ public class TranslateProcessor implements ItemProcessor<String, String> {
     @Autowired
     public TranslateProcessor(TranslationService translationService) {
         this.translationService = translationService;
+        logger.info("Using {} implementation for TranslationService", translationService.getClass().getName());
     }
 
     @Override
