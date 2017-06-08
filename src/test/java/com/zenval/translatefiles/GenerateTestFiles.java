@@ -18,7 +18,7 @@ public class GenerateTestFiles {
         int maxLines = 10_000_000;
 
         for (int file = 1; file <= files; file++) {
-            try (Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("file" + file), "utf-8"))) {
+            try (Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("file" + file + ".tstfile"), "utf-8"))) {
                 StringBuffer stringBuffer = new StringBuffer();
                 for (int word = 1; word <= maxLines - file; word++) {
                     String text = "file" + file + "word" + word;
