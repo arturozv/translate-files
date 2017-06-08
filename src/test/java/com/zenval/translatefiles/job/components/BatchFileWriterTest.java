@@ -43,18 +43,18 @@ public class BatchFileWriterTest {
     }
 
     @Test
-    public void write_batch_calls_writer() throws Exception {
+    public void write_batch_calls_writer_sorted() throws Exception {
         //given
         BatchAggregator batchAggregator = mock(BatchAggregator.class);
         BatchGroup batchGroup = new BatchGroup(1l, 1l);
-        batchGroup.getTranslations().addAll(Arrays.asList(new Translation("text", "translated", 1l, "file1"), new Translation("text2", "translated2", 1l, "file2")));
+        batchGroup.getTranslations().addAll(Arrays.asList(new Translation("text", "translatedB", 1l, "file1"), new Translation("text2", "translatedA", 1l, "file2")));
         BatchFileWriter batchFileWriter = new BatchFileWriter(batchAggregator, itemWriter);
 
         //when
         batchFileWriter.writeBatch(batchGroup);
 
         //then
-        verify(itemWriter, times(1)).write(Arrays.asList("translated", "translated2"));
+        verify(itemWriter, times(1)).write(Arrays.asList("translatedA", "translatedB"));
     }
 
 }

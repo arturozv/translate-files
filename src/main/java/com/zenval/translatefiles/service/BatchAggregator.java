@@ -5,9 +5,18 @@ import com.zenval.translatefiles.dto.Translation;
 
 public interface BatchAggregator {
 
+    /**
+     * Aggregate translations to write the batched file
+     *
+     * @param translations translations
+     */
     void aggregate(Translation... translations);
 
-
+    /**
+     * Register a callback that will be called when a line is processed across all the files
+     *
+     * @param callback Callback to register
+     */
     void registerCallback(Callback callback);
 
     /**
@@ -18,9 +27,20 @@ public interface BatchAggregator {
      */
     void registerFileLength(String fileId, Long lineCount);
 
+    /**
+     * Get the total lines of all files together
+     *
+     * @return total lines of all files together
+     */
     long getTotalLines();
 
+
     interface Callback {
+        /**
+         * Called when a line is processed across all the files
+         *
+         * @param batchGroup batch group with all the translations for a line.
+         */
         void onLineComplete(BatchGroup batchGroup);
     }
 }

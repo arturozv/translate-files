@@ -1,5 +1,7 @@
 package com.zenval.translatefiles.service.impl;
 
+import com.zenval.translatefiles.service.TranslationException;
+
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -34,7 +36,9 @@ public class GoogleTranslationServiceTest {
         ExecutorService executorService = Executors.newFixedThreadPool(threads);
 
         IntStream.rangeClosed(1, threads).forEach(t -> executorService.submit(() -> IntStream.range(1, 1000).forEach(i -> {
-            googleTranslationService.translate("hello world " + t + "-" + i, "en", "es");
+            try {
+                googleTranslationService.translate("hello world " + t + "-" + i, "en", "es");
+            } catch (TranslationException ignored) {}
         })));
 
         executorService.awaitTermination(10, TimeUnit.MINUTES);
