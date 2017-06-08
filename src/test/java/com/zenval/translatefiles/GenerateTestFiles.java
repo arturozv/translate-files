@@ -14,15 +14,24 @@ public class GenerateTestFiles {
 
     @Test
     public void generateTestFiles() throws Exception {
-        int maxLines = 100;
+        int maxLines = 1000000;
         for (int file = 1; file <= 10; file++) {
             try (Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("file" + file), "utf-8"))) {
+                StringBuffer stringBuffer = new StringBuffer();
                 for (int word = 1; word <= maxLines - file; word++) {
                     String text = "file" + file + "word" + word;
                     if (word != maxLines - file) {
                         text += "\n";
                     }
-                    writer.write(text);
+                    stringBuffer.append(text);
+
+                    if (word % 1000 == 0) {
+                        writer.write(stringBuffer.toString());
+                        stringBuffer = new StringBuffer();
+                    }
+                }
+                if (stringBuffer.length() > 0) {
+                    writer.write(stringBuffer.toString());
                 }
             }
         }
