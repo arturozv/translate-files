@@ -17,3 +17,7 @@ Translates the content of the input files. Check the problem definition at [prob
 **Run times:**
 - 3 files with 50 words per file = 150 lines -> 3,5s (using google translate api) ([GC logs](http://gceasy.io/my-gc-report.jsp?p=c2hhcmVkLzIwMTcvMDYvOC8tLWdjLmxvZy0tNy0xMS0zOQ==))
 - 8 files, 100k lines per file = 800k lines -> 40secs (using mock translations to avoid api rate limits)
+
+**Batch design:**
+
+![Batch](/translate-files-test.png)
