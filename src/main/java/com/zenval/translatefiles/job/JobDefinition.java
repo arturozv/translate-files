@@ -8,6 +8,7 @@ import com.zenval.translatefiles.job.components.FilePartitioner;
 import com.zenval.translatefiles.job.components.TranslateProcessor;
 import com.zenval.translatefiles.service.BatchAggregator;
 import com.zenval.translatefiles.service.TranslationService;
+import com.zenval.translatefiles.service.impl.GoogleTranslationService;
 import com.zenval.translatefiles.service.impl.TestTranslationService;
 
 import org.apache.commons.io.FileUtils;
@@ -65,7 +66,8 @@ public class JobDefinition {
 
     @Bean
     public TranslationService translateService() {
-        return new TestTranslationService();
+        //return new TestTranslationService();
+        return new GoogleTranslationService();
     }
 
     @Bean
@@ -160,9 +162,7 @@ public class JobDefinition {
         fileWriter.setShouldDeleteIfExists(false);
         fileWriter.setAppendAllowed(true);
         fileWriter.setLineAggregator(new PassThroughLineAggregator<>());
-        if (lineAggregator != null) {
-            fileWriter.setLineAggregator(lineAggregator);
-        }
+        if(lineAggregator != null) { fileWriter.setLineAggregator(lineAggregator); }
         fileWriter.setSaveState(false);
         fileWriter.setTransactional(false);
         fileWriter.open(new ExecutionContext());

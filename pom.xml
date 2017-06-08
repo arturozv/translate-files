@@ -39,6 +39,8 @@
         <junit.version>4.12</junit.version>
         <assertj-core.version>3.8.0</assertj-core.version>
         <commons-io.version>2.5</commons-io.version>
+        <httpclient.version>4.5.3</httpclient.version>
+        <minimal-json.version>0.9.4</minimal-json.version>
 
     </properties>
 
@@ -52,6 +54,22 @@
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
             <version>${commons-io.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>${httpclient.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>fluent-hc</artifactId>
+            <version>${httpclient.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.eclipsesource.minimal-json</groupId>
+            <artifactId>minimal-json</artifactId>
+            <version>${minimal-json.version}</version>
         </dependency>
 
         <!-- testing -->
@@ -75,8 +93,6 @@
             <artifactId>assertj-core</artifactId>
             <version>${assertj-core.version}</version>
         </dependency>
-
-
     </dependencies>
 
     <build>
