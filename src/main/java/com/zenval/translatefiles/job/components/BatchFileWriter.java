@@ -32,9 +32,18 @@ public class BatchFileWriter implements ItemWriter<Translation> {
         batchAggregator.aggregate(items.toArray(new Translation[items.size()]));
     }
 
+    /**
+     * Write a batch of lines
+     * @param batchGroup
+     */
     void writeBatch(BatchGroup batchGroup) {
         logger.info("writing batch {}", batchGroup);
-        List<String> words = batchGroup.getTranslations().stream().map(Translation::getTranslated).collect(Collectors.toList());
+
+        List<String> words = batchGroup.getTranslations().stream()
+                .map(Translation::getTranslated)
+                .sorted()
+                .collect(Collectors.toList());
+
         try {
             flatFileItemWriter.write(words);
         } catch (Exception e) {
