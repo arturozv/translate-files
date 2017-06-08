@@ -28,9 +28,9 @@ public class TranslateFilesApplication {
     private static final Logger logger = LoggerFactory.getLogger(TranslateFilesApplication.class);
 
     public static void main(String[] args) {
-
-        //String[] paths = new String[]{"Set1.txt", "Set2.txt", "Set3.txt"};
-        String[] paths = new String[]{"file1", "file2", "file3", "file4", "file5", "file6", "file7", "file8"};
+        String[] paths = (args.length > 0) ? args :
+                new String[]{"Set1.txt", "Set2.txt", "Set3.txt"};
+        //new String[]{"file1", "file2", "file3", "file4", "file5", "file6", "file7", "file8"};
 
         final Files files = parseArguments(paths);
 
