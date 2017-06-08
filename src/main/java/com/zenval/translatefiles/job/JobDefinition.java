@@ -45,7 +45,7 @@ public class JobDefinition {
     private static final String AS_YOU_GO_FILE = "AsYouGo.txt";
     private static final String BATCHED_FILE = "Batched.txt";
 
-    private final int threads = 1;
+    private final int threads = 4;
     private final int chunkSize = 10000;
 
     @Autowired
@@ -105,7 +105,7 @@ public class JobDefinition {
     @Bean("generateBatchedFileStep")
     public Step generateBatchedFileStep(MultiFileItemReader translatedMultiResourceItemReader, @Qualifier("batchedItemWriter") ItemWriter<String> batchedItemWriter) {
         return stepBuilder.get("generateBatchedFileStep").
-                <List<String>, String>chunk(1)
+                <List<String>, String>chunk(1) //has to be 1 by 1 to read sequentially each line of each file
                 .reader(translatedMultiResourceItemReader)
                 .processor(item -> item.stream().sorted().collect(Collectors.joining("\n")))
                 .writer(batchedItemWriter)
