@@ -11,6 +11,7 @@ import com.zenval.translatefiles.service.BatchAggregator;
 import com.zenval.translatefiles.service.TranslationService;
 import com.zenval.translatefiles.service.impl.TestTranslationService;
 
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.Job;
@@ -36,6 +37,7 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import java.io.File;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -75,8 +77,8 @@ public class JobDefinition {
     @Bean
     public Step clearFilesStep(Files files) {
         return stepBuilder.get("clearFilesStep").tasklet((contribution, chunkContext) -> {
-            new File(AS_YOU_GO_FILE).delete();
-            new File(BATCHED_FILE).delete();
+            FileUtils.write(new File(AS_YOU_GO_FILE), "", Charset.defaultCharset());
+            FileUtils.write(new File(BATCHED_FILE), "", Charset.defaultCharset());
             files.getPaths().forEach(path -> new File(path + ".translated").delete());
             return RepeatStatus.FINISHED;
         }).build();
