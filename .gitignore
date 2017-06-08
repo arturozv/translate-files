@@ -4,6 +4,7 @@ target/
 Batched.txt
 AsYouGo.txt
 *.tstfile
+*.log
 
 ### STS ###
 .apt_generated
