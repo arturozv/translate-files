@@ -1,9 +1,7 @@
 package com.zenval.translatefiles.job.components;
 
-import com.zenval.translatefiles.dto.Files;
+import com.zenval.translatefiles.file.Files;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.partition.support.Partitioner;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.beans.factory.annotation.Autowired;

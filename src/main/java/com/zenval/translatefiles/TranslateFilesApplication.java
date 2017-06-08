@@ -1,6 +1,6 @@
 package com.zenval.translatefiles;
 
-import com.zenval.translatefiles.dto.Files;
+import com.zenval.translatefiles.file.Files;
 import com.zenval.translatefiles.file.InvalidFileException;
 
 import org.slf4j.Logger;

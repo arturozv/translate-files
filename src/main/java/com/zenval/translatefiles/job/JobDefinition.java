@@ -1,12 +1,12 @@
 package com.zenval.translatefiles.job;
 
-import com.zenval.translatefiles.dto.Files;
 import com.zenval.translatefiles.file.FileLineCounter;
+import com.zenval.translatefiles.file.Files;
 import com.zenval.translatefiles.job.components.FilePartitioner;
 import com.zenval.translatefiles.job.components.MultiFileItemReader;
 import com.zenval.translatefiles.job.components.TranslateProcessor;
 import com.zenval.translatefiles.service.TranslationService;
-import com.zenval.translatefiles.service.impl.TestTranslationService;
+import com.zenval.translatefiles.service.impl.GoogleTranslationService;
 
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
@@ -66,8 +66,8 @@ public class JobDefinition {
 
     @Bean
     public TranslationService translateService() {
-        return new TestTranslationService();
-        //return new GoogleTranslationService();
+        //return new TestTranslationService();
+        return new GoogleTranslationService();
     }
 
     @Bean
@@ -90,8 +90,8 @@ public class JobDefinition {
 
     @Bean(name = "translateFilesSlaveStep")
     public Step translateFilesSlaveStep(FlatFileItemReader<String> fileReader,
-                                       TranslateProcessor translateProcessor,
-                                       CompositeItemWriter<String> itemWriter) {
+                                        TranslateProcessor translateProcessor,
+                                        CompositeItemWriter<String> itemWriter) {
         return stepBuilder.get("translateFilesSlaveStep").
                 <String, String>chunk(chunkSize)
                 .reader(fileReader)

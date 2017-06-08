@@ -1,6 +1,6 @@
 package com.zenval.translatefiles.job.components;
 
-import com.zenval.translatefiles.dto.Files;
+import com.zenval.translatefiles.file.Files;
 
 import org.springframework.batch.core.annotation.AfterStep;
 import org.springframework.batch.core.annotation.BeforeStep;
