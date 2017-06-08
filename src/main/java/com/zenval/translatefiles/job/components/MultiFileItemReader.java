@@ -2,8 +2,6 @@ package com.zenval.translatefiles.job.components;
 
 import com.zenval.translatefiles.dto.Files;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.annotation.AfterStep;
 import org.springframework.batch.core.annotation.BeforeStep;
 import org.springframework.batch.item.ExecutionContext;
@@ -15,8 +13,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MultiFileItemReader implements ItemReader<List<String>> {
-    private static final Logger logger = LoggerFactory.getLogger(MultiFileItemReader.class);
-
     private List<FlatFileItemReader<String>> flatFileItemReaders;
     private Files files;
 
@@ -52,8 +48,6 @@ public class MultiFileItemReader implements ItemReader<List<String>> {
             flatFileItemReader.setStrict(true);
             flatFileItemReader.setResource(file);
             flatFileItemReader.open(new ExecutionContext());
-
-            logger.info("Created reader for {}, content length: {}", file.getPath(), file.contentLength());
 
             flatFileItemReaders.add(flatFileItemReader);
         }

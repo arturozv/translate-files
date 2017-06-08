@@ -14,7 +14,6 @@ public class TranslateProcessor implements ItemProcessor<TextAndLine, Translatio
     private static final Logger logger = LoggerFactory.getLogger(TranslateProcessor.class);
 
     private TranslationService translationService;
-
     private final String fileId;
 
     @Autowired

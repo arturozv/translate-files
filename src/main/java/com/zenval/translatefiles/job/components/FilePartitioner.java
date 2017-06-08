@@ -14,8 +14,6 @@ import java.util.Map;
 
 @Component
 public class FilePartitioner implements Partitioner {
-    private static final Logger logger = LoggerFactory.getLogger(FilePartitioner.class);
-
     public static final String FILE_ID_KEY = "fileId";
 
     private Files files;
@@ -28,16 +26,12 @@ public class FilePartitioner implements Partitioner {
     @Override
     public Map<String, ExecutionContext> partition(int gridSize) {
         Map<String, ExecutionContext> partitionMap = new HashMap<>();
-        logger.info("Partitioning process...");
 
         if (files != null) {
             for (String path : files.getPaths()) {
-                logger.info("Preparing to process file: {}", path);
-
                 ExecutionContext context = new ExecutionContext();
                 context.put(FILE_ID_KEY, path);
                 partitionMap.put(path, context);
-
             }
         }
         return partitionMap;

@@ -4,12 +4,17 @@ import com.zenval.translatefiles.file.FileLineCounter;
 import com.zenval.translatefiles.file.FileValidator;
 import com.zenval.translatefiles.file.InvalidFileException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class Files {
+    private static final Logger logger = LoggerFactory.getLogger(Files.class);
+
     public final static String TRANSLATED_EXTENSION = ".translated";
 
     private List<String> paths;
@@ -56,6 +61,8 @@ public class Files {
                 lineCount.put(path, count);
                 totalLinesCount += count;
             }
+
+            logger.info("Preparing to process {} files with a total number of lines of {}", paths.size(), totalLinesCount);
 
             return new Files(paths, lineCount, totalLinesCount);
         }
