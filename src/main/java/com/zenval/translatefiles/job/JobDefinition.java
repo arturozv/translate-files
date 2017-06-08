@@ -7,7 +7,6 @@ import com.zenval.translatefiles.file.FileLineCounter;
 import com.zenval.translatefiles.job.components.FilePartitioner;
 import com.zenval.translatefiles.job.components.MultiFileItemReader;
 import com.zenval.translatefiles.job.components.TranslateProcessor;
-import com.zenval.translatefiles.service.BatchAggregator;
 import com.zenval.translatefiles.service.TranslationService;
 import com.zenval.translatefiles.service.impl.TestTranslationService;
 
@@ -75,11 +74,10 @@ public class JobDefinition {
     }
 
     @Bean
-    public Step clearFilesStep(Files files) {
+    public Step clearFilesStep() {
         return stepBuilder.get("clearFilesStep").tasklet((contribution, chunkContext) -> {
             FileUtils.write(new File(AS_YOU_GO_FILE), "", Charset.defaultCharset());
             FileUtils.write(new File(BATCHED_FILE), "", Charset.defaultCharset());
-            files.getPaths().forEach(path -> new File(path + ".translated").delete());
             return RepeatStatus.FINISHED;
         }).build();
     }
@@ -128,9 +126,9 @@ public class JobDefinition {
     }
 
     @Bean
-    public Step validateFilesStep(BatchAggregator batchAggregator) {
+    public Step validateFilesStep(Files files) {
         return stepBuilder.get("validateFilesStep").tasklet((contribution, chunkContext) -> {
-            long totalLines = batchAggregator.getTotalLines();
+            long totalLines = files.getTotalLinesCount();
             Long asyougoCount = FileLineCounter.getFileLineCount(new File(AS_YOU_GO_FILE)) - 1;
             Long batchedCount = FileLineCounter.getFileLineCount(new File(BATCHED_FILE)) - 1;
             logger.info("Total lines: {}, {} lines: {}, {} lines: {}", totalLines, AS_YOU_GO_FILE, asyougoCount, BATCHED_FILE, batchedCount);
@@ -140,11 +138,11 @@ public class JobDefinition {
 
     @Bean
     @StepScope
-    public FlatFileItemReader<TextAndLine> fileReader(@Value("#{stepExecutionContext[" + FilePartitioner.FILE_KEY + "]}") final File file) throws Exception {
+    public FlatFileItemReader<TextAndLine> fileReader(@Value("#{stepExecutionContext[" + FilePartitioner.FILE_ID_KEY + "]}") final String fileId) throws Exception {
         FlatFileItemReader<TextAndLine> fileReader = new FlatFileItemReader<>();
         fileReader.setEncoding("UTF-8");
         fileReader.setLinesToSkip(0);
-        fileReader.setResource(new FileSystemResource(file));
+        fileReader.setResource(new FileSystemResource(fileId));
         fileReader.setLineMapper(TextAndLine::new);
         return fileReader;
     }
@@ -175,7 +173,7 @@ public class JobDefinition {
     @StepScope
     @Bean("translatedFileWriter")
     public ItemWriter<Translation> translatedFileWriter(@Value("#{stepExecutionContext[" + FilePartitioner.FILE_ID_KEY + "]}") final String fileId) throws Exception {
-        return getItemWriter(fileId + ".translated", Translation::getTranslated);
+        return getItemWriter(fileId + Files.TRANSLATED_EXTENSION, Translation::getTranslated);
     }
 
     private <T> ItemWriter<T> getItemWriter(String file, LineAggregator<T> lineAggregator) throws Exception {
