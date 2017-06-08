@@ -28,7 +28,7 @@ public class InMemoryBatchAggregator implements BatchAggregator {
     private Map<String, Long> lineCountByFile = new HashMap<>();
     private Map<Long, Long> expectedTranslationsByLineNumber = new HashMap<>();
     private Map<Long, BatchGroup> wordsByLineNumber = new HashMap<>();
-    private AtomicLong processedLineNumber = new AtomicLong(0);
+    private AtomicLong processedLineNumber = new AtomicLong(1);
     private AtomicLong minLineNumber;
 
     private Callback callback;
@@ -89,9 +89,14 @@ public class InMemoryBatchAggregator implements BatchAggregator {
 
     void writeBatch(Long lineNumber, BatchGroup batchGroup) {
         logger.debug("line {} complete!", lineNumber);
-        this.wordsByLineNumber.remove(lineNumber);
+        if (processedLineNumber.get() >= lineNumber) {
 
-        callback.onLineComplete(batchGroup);
+
+            this.wordsByLineNumber.remove(lineNumber);
+            callback.onLineComplete(batchGroup);
+        }
+
+
     }
 
     Long getExpectedWordCount(long lineNumber) {
@@ -108,5 +113,25 @@ public class InMemoryBatchAggregator implements BatchAggregator {
             expectedTranslationsByLineNumber.put(lineNumber, expected);
         }
         return expected;
+    }
+
+
+    /**
+     * GETTERS FOR TESTS
+     **/
+    Map<String, Long> getLineCountByFile() {
+        return lineCountByFile;
+    }
+    Map<Long, Long> getExpectedTranslationsByLineNumber() {
+        return expectedTranslationsByLineNumber;
+    }
+    Map<Long, BatchGroup> getWordsByLineNumber() {
+        return wordsByLineNumber;
+    }
+    AtomicLong getProcessedLineNumber() {
+        return processedLineNumber;
+    }
+    AtomicLong getMinLineNumber() {
+        return minLineNumber;
     }
 }
