@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/arturozv/translate-files.svg?branch=master)](https://travis-ci.org/arturozv/translate-files)
+
 ***What it does:***
 
 Translates the content of the input files. Check the definition in [Test.txt](Test.txt)
