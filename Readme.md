@@ -14,5 +14,6 @@ Translates the content of the input files. check the problem definition at probl
 - Good old battle tested framework
 
 **Run times:**
-8 files, 100k lines per file = 800k lines -> 40secs
-8 files, 10M lines per file = 80M lines -> 4000secs
+
+- 8 files, 100k lines per file = 800k lines -> 40secs
+- 8 files, 10M lines per file = 80M lines -> 4000secs
