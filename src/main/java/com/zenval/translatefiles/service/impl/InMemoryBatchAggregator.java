@@ -27,7 +27,8 @@ public class InMemoryBatchAggregator implements BatchAggregator {
 
     private Map<String, Long> lineCountByFile = new HashMap<>();
     private Map<Long, Long> expectedTranslationsByLineNumber = new HashMap<>();
-    private Map<Long, BatchGroup> wordsByLineNumber = new HashMap<>();
+    private Map<Long, BatchGroup> toProcessBatchesByLineNumber = new HashMap<>();
+    private Map<Long, BatchGroup> inProgressBatchesByLineNumber = new HashMap<>();
     private AtomicLong processedLineNumber = new AtomicLong(1);
     private AtomicLong minLineNumber;
 
@@ -68,7 +69,7 @@ public class InMemoryBatchAggregator implements BatchAggregator {
             Long lineNumber = entry.getKey();
             List<Translation> words = entry.getValue();
 
-            BatchGroup batchGroup = this.wordsByLineNumber.get(lineNumber);
+            BatchGroup batchGroup = this.inProgressBatchesByLineNumber.get(lineNumber);
 
             if (batchGroup == null) {
                 Long expectedWordCount = getExpectedWordCount(lineNumber);
@@ -80,23 +81,30 @@ public class InMemoryBatchAggregator implements BatchAggregator {
             logger.debug("Checking line {}. Expected: {}, current: {}", lineNumber, batchGroup.getExpectedWordCount(), batchGroup.getTranslations().size());
 
             if (batchGroup.getTranslations().size() == batchGroup.getExpectedWordCount()) {
-                writeBatch(lineNumber, batchGroup);
+                batchGroupCompleted(batchGroup);
             } else {
-                this.wordsByLineNumber.put(lineNumber, batchGroup);
+                this.inProgressBatchesByLineNumber.put(lineNumber, batchGroup);
             }
         }
     }
 
-    void writeBatch(Long lineNumber, BatchGroup batchGroup) {
-        logger.debug("line {} complete!", lineNumber);
-        if (processedLineNumber.get() >= lineNumber) {
+    void batchGroupCompleted(BatchGroup batchGroup) {
+        long lineNumber = batchGroup.getLine();
+        logger.info("line {} complete!", lineNumber);
+        this.inProgressBatchesByLineNumber.remove(lineNumber);
+        this.toProcessBatchesByLineNumber.put(lineNumber, batchGroup);
+        processBatch(processedLineNumber.get());
+    }
 
+    void processBatch(long lineNumber) {
+        BatchGroup batchGroup = toProcessBatchesByLineNumber.remove(lineNumber);
 
-            this.wordsByLineNumber.remove(lineNumber);
+        if (batchGroup != null) {
+            logger.info("writing batch for line {}!", lineNumber);
             callback.onLineComplete(batchGroup);
+            long next = processedLineNumber.incrementAndGet();
+            processBatch(next);
         }
-
-
     }
 
     Long getExpectedWordCount(long lineNumber) {
@@ -121,15 +129,6 @@ public class InMemoryBatchAggregator implements BatchAggregator {
      **/
     Map<String, Long> getLineCountByFile() {
         return lineCountByFile;
-    }
-    Map<Long, Long> getExpectedTranslationsByLineNumber() {
-        return expectedTranslationsByLineNumber;
-    }
-    Map<Long, BatchGroup> getWordsByLineNumber() {
-        return wordsByLineNumber;
-    }
-    AtomicLong getProcessedLineNumber() {
-        return processedLineNumber;
     }
     AtomicLong getMinLineNumber() {
         return minLineNumber;

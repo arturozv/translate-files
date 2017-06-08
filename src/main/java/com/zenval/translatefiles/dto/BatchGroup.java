@@ -34,4 +34,17 @@ public class BatchGroup {
         sb.append('}');
         return sb.toString();
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof BatchGroup)) return false;
+        BatchGroup that = (BatchGroup) o;
+        return line.equals(that.line);
+    }
+
+    @Override
+    public int hashCode() {
+        return line.hashCode();
+    }
 }
